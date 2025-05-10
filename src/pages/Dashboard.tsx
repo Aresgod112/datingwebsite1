@@ -1,146 +1,123 @@
-import React, { useEffect } from 'react';
-import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Heart, Search, MessageSquare, User, LogOut } from 'lucide-react';
+import React from 'react';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useUserStore } from '../store/userStore';
-import { useMessageStore } from '../store/messageStore';
+import { 
+  Heart, 
+  MessageSquare, 
+  User, 
+  LogOut, 
+  Search,
+  Users
+} from 'lucide-react';
 
 const Dashboard: React.FC = () => {
-  const { currentUser, logout } = useUserStore();
-  const { conversations, fetchConversations } = useMessageStore();
-  const location = useLocation();
+  const { logout } = useUserStore();
   const navigate = useNavigate();
-  
-  // Fetch conversations on mount to get unread count
-  useEffect(() => {
-    fetchConversations();
-  }, [fetchConversations]);
-  
-  const getTitle = () => {
-    const path = location.pathname;
-    if (path.includes('/matches')) return 'Your Matches';
-    if (path.includes('/discover')) return 'Discover';
-    if (path.includes('/messages')) {
-      if (path.split('/').length > 3) {
-        return 'Conversation';
-      }
-      return 'Messages';
-    }
-    if (path.includes('/profile')) return 'Your Profile';
-    return 'Dashboard';
-  };
+  const location = useLocation();
   
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
   
-  // Calculate total unread messages
-  const unreadCount = conversations.reduce((total, conv) => total + conv.unreadCount, 0);
+  const isActive = (path: string) => {
+    return location.pathname.includes(path);
+  };
   
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
+          <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Heart className="h-8 w-8 text-pink-500" fill="#ec4899" />
-              <span className="ml-2 text-xl font-bold text-gray-800">Heartlink</span>
+              <div className="flex-shrink-0 flex items-center">
+                <Heart className="h-8 w-8 text-pink-500" fill="#ec4899" />
+                <span className="ml-2 text-xl font-bold text-gray-900">HeartLink</span>
+              </div>
             </div>
             <div className="flex items-center">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-gray-700">
-                  {currentUser?.name}
-                </span>
-                <div className="w-8 h-8 rounded-full overflow-hidden">
-                  <img 
-                    src={currentUser?.photos[0] || 'https://via.placeholder.com/150'} 
-                    alt={currentUser?.name || 'User'} 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-              <button 
+              <button
                 onClick={handleLogout}
-                className="ml-4 p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                aria-label="Logout"
+                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition"
               >
-                <LogOut size={20} />
+                <LogOut className="h-4 w-4 mr-1" />
+                Logout
               </button>
             </div>
-          </div>
-          <div className="border-b border-gray-200">
-            <h1 className="text-2xl font-bold text-gray-800 py-4">{getTitle()}</h1>
           </div>
         </div>
       </header>
       
       {/* Main content */}
-      <main className="flex-1">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <Outlet />
-        </div>
-      </main>
-      
-      {/* Bottom navigation */}
-      <nav className="bg-white border-t border-gray-200 fixed bottom-0 w-full">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-around h-16">
-            <NavLink 
-              to="/dashboard/matches" 
-              className={({ isActive }) => 
-                `flex flex-col items-center justify-center w-full ${
-                  isActive ? 'text-pink-500' : 'text-gray-500 hover:text-gray-700'
-                }`
-              }
-            >
-              <Heart size={24} />
-              <span className="text-xs mt-1">Matches</span>
-            </NavLink>
-            <NavLink 
-              to="/dashboard/discover" 
-              className={({ isActive }) => 
-                `flex flex-col items-center justify-center w-full ${
-                  isActive ? 'text-pink-500' : 'text-gray-500 hover:text-gray-700'
-                }`
-              }
-            >
-              <Search size={24} />
-              <span className="text-xs mt-1">Discover</span>
-            </NavLink>
-            <NavLink 
-              to="/dashboard/messages" 
-              className={({ isActive }) => 
-                `flex flex-col items-center justify-center w-full relative ${
-                  isActive ? 'text-pink-500' : 'text-gray-500 hover:text-gray-700'
-                }`
-              }
-            >
-              <MessageSquare size={24} />
-              {unreadCount > 0 && (
-                <span className="absolute top-0 right-1/3 bg-pink-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-              <span className="text-xs mt-1">Messages</span>
-            </NavLink>
-            <NavLink 
-              to="/dashboard/profile" 
-              className={({ isActive }) => 
-                `flex flex-col items-center justify-center w-full ${
-                  isActive ? 'text-pink-500' : 'text-gray-500 hover:text-gray-700'
-                }`
-              }
-            >
-              <User size={24} />
-              <span className="text-xs mt-1">Profile</span>
-            </NavLink>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Sidebar navigation */}
+          <div className="md:w-64 flex-shrink-0">
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <nav className="flex flex-col">
+                <NavLink
+                  to="/dashboard/discover"
+                  className={({ isActive }) => 
+                    `flex items-center px-4 py-3 text-sm font-medium ${
+                      isActive 
+                        ? 'bg-pink-50 text-pink-700 border-l-4 border-pink-500' 
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`
+                  }
+                >
+                  <Search className="h-5 w-5 mr-3" />
+                  Discover
+                </NavLink>
+                <NavLink
+                  to="/dashboard/matches"
+                  className={({ isActive }) => 
+                    `flex items-center px-4 py-3 text-sm font-medium ${
+                      isActive 
+                        ? 'bg-pink-50 text-pink-700 border-l-4 border-pink-500' 
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`
+                  }
+                >
+                  <Users className="h-5 w-5 mr-3" />
+                  Matches
+                </NavLink>
+                <NavLink
+                  to="/dashboard/messages"
+                  className={({ isActive }) => 
+                    `flex items-center px-4 py-3 text-sm font-medium ${
+                      isActive || location.pathname.includes('/dashboard/messages/') 
+                        ? 'bg-pink-50 text-pink-700 border-l-4 border-pink-500' 
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`
+                  }
+                >
+                  <MessageSquare className="h-5 w-5 mr-3" />
+                  Messages
+                </NavLink>
+                <NavLink
+                  to="/dashboard/profile"
+                  className={({ isActive }) => 
+                    `flex items-center px-4 py-3 text-sm font-medium ${
+                      isActive 
+                        ? 'bg-pink-50 text-pink-700 border-l-4 border-pink-500' 
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`
+                  }
+                >
+                  <User className="h-5 w-5 mr-3" />
+                  Profile
+                </NavLink>
+              </nav>
+            </div>
+          </div>
+          
+          {/* Page content */}
+          <div className="flex-1">
+            <Outlet />
           </div>
         </div>
-      </nav>
-      
-      {/* Bottom padding to account for fixed navigation */}
-      <div className="h-16"></div>
+      </main>
     </div>
   );
 };

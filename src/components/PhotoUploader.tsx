@@ -1,47 +1,29 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, X } from 'lucide-react';
+import { X, Upload, Camera } from 'lucide-react';
 
 interface PhotoUploaderProps {
+  initialPhotos: string[];
+  onPhotosChange: (photos: string[]) => void;
   maxPhotos?: number;
-  onPhotosChange?: (photos: string[]) => void;
-  initialPhotos?: string[];
 }
 
 const PhotoUploader: React.FC<PhotoUploaderProps> = ({
-  maxPhotos = 6,
-  onPhotosChange,
   initialPhotos = [],
+  onPhotosChange,
+  maxPhotos = 6,
 }) => {
   const [photos, setPhotos] = useState<string[]>(initialPhotos);
-  const [isUploading, setIsUploading] = useState(false);
-
+  
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    if (photos.length >= maxPhotos) return;
+    // In a real app, you would upload these files to a server
+    // For this demo, we'll just create object URLs
+    const newPhotos = acceptedFiles.map(file => URL.createObjectURL(file));
     
-    setIsUploading(true);
-    
-    // Convert files to base64 strings (simulating upload)
-    const promises = acceptedFiles.slice(0, maxPhotos - photos.length).map(file => {
-      return new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          if (e.target?.result) {
-            resolve(e.target.result as string);
-          }
-        };
-        reader.readAsDataURL(file);
-      });
-    });
-    
-    Promise.all(promises).then(newPhotos => {
-      const updatedPhotos = [...photos, ...newPhotos];
-      setPhotos(updatedPhotos);
-      if (onPhotosChange) {
-        onPhotosChange(updatedPhotos);
-      }
-      setIsUploading(false);
-    });
+    // Add new photos, but don't exceed maxPhotos
+    const updatedPhotos = [...photos, ...newPhotos].slice(0, maxPhotos);
+    setPhotos(updatedPhotos);
+    onPhotosChange(updatedPhotos);
   }, [photos, maxPhotos, onPhotosChange]);
   
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -50,32 +32,31 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({
       'image/*': ['.jpeg', '.jpg', '.png', '.gif']
     },
     maxFiles: maxPhotos - photos.length,
-    disabled: photos.length >= maxPhotos || isUploading,
+    disabled: photos.length >= maxPhotos,
   });
   
   const removePhoto = (index: number) => {
     const updatedPhotos = [...photos];
     updatedPhotos.splice(index, 1);
     setPhotos(updatedPhotos);
-    if (onPhotosChange) {
-      onPhotosChange(updatedPhotos);
-    }
+    onPhotosChange(updatedPhotos);
   };
   
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-2">
         {photos.map((photo, index) => (
           <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
             <img 
               src={photo} 
-              alt={`Uploaded photo ${index + 1}`} 
+              alt={`Photo ${index + 1}`} 
               className="w-full h-full object-cover"
             />
             <button
               type="button"
               onClick={() => removePhoto(index)}
-              className="absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-1 text-white hover:bg-opacity-70 transition-colors"
+              className="absolute top-1 right-1 bg-black bg-opacity-50 rounded-full p-1 text-white hover:bg-opacity-70 focus:outline-none"
+              aria-label="Remove photo"
             >
               <X size={16} />
             </button>
@@ -85,21 +66,21 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({
         {photos.length < maxPhotos && (
           <div
             {...getRootProps()}
-            className={`aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors ${
+            className={`aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer ${
               isDragActive ? 'border-pink-500 bg-pink-50' : 'border-gray-300 hover:border-pink-400'
-            } ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            }`}
           >
             <input {...getInputProps()} />
-            <Upload className="h-8 w-8 text-gray-400 mb-2" />
+            <Camera className="h-8 w-8 text-gray-400 mb-2" />
             <p className="text-sm text-gray-500 text-center">
-              {isDragActive ? 'Drop the photo here' : 'Upload photo'}
+              {isDragActive ? 'Drop the files here' : 'Add photo'}
             </p>
           </div>
         )}
       </div>
       
       <p className="text-sm text-gray-500">
-        {photos.length} of {maxPhotos} photos uploaded
+        {photos.length} of {maxPhotos} photos added
       </p>
     </div>
   );

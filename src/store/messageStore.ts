@@ -56,7 +56,7 @@ const mockMessages: Record<string, Message[]> = {
       conversationId: 'conv1',
       senderId: 'user1',
       receiverId: 'current-user',
-      content: 'Not yet, but I'd love to go sometime! Maybe we could plan a hike?',
+      content: 'Not yet',
       timestamp: new Date(Date.now() - 3600000), // 1 hour ago
       read: false,
     },
@@ -65,7 +65,7 @@ const mockMessages: Record<string, Message[]> = {
       conversationId: 'conv1',
       senderId: 'user1',
       receiverId: 'current-user',
-      content: 'I'm free this weekend if you're interested!',
+      content: "I'm free this weekend if you're interested!",
       timestamp: new Date(Date.now() - 1800000), // 30 minutes ago
       read: false,
     },
@@ -76,7 +76,7 @@ const mockMessages: Record<string, Message[]> = {
       conversationId: 'conv2',
       senderId: 'current-user',
       receiverId: 'user2',
-      content: 'I saw you like cooking too. What's your favorite dish to make?',
+      content: "I saw you like cooking too. What's your favorite dish to make?",
       timestamp: new Date(Date.now() - 259200000), // 3 days ago
       read: true,
     },
