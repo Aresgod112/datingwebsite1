@@ -8,6 +8,7 @@ export type User = {
   photos: string[];
   gender: 'male' | 'female' | 'non-binary' | 'other';
   lookingFor: ('male' | 'female' | 'non-binary' | 'other')[];
+  sexualPreference?: 'straight' | 'gay' | 'lesbian' | 'bisexual' | 'pansexual' | 'asexual' | 'other';
   lastActive: Date;
   email?: string;
 };
@@ -26,6 +27,7 @@ export const currentUser: User = {
   ],
   gender: 'female',
   lookingFor: ['male', 'non-binary'],
+  sexualPreference: 'straight',
   lastActive: new Date(),
   email: 'alex@example.com',
 };
@@ -44,6 +46,7 @@ export const users: User[] = [
     ],
     gender: 'male',
     lookingFor: ['female', 'non-binary'],
+    sexualPreference: 'straight',
     lastActive: new Date(Date.now() - 3600000), // 1 hour ago
   },
   {
@@ -59,6 +62,7 @@ export const users: User[] = [
     ],
     gender: 'female',
     lookingFor: ['male'],
+    sexualPreference: 'straight',
     lastActive: new Date(Date.now() - 86400000), // 1 day ago
   },
   {
@@ -74,6 +78,7 @@ export const users: User[] = [
     ],
     gender: 'non-binary',
     lookingFor: ['female', 'male', 'non-binary'],
+    sexualPreference: 'pansexual',
     lastActive: new Date(Date.now() - 172800000), // 2 days ago
   },
   {
@@ -89,6 +94,7 @@ export const users: User[] = [
     ],
     gender: 'male',
     lookingFor: ['female'],
+    sexualPreference: 'straight',
     lastActive: new Date(Date.now() - 43200000), // 12 hours ago
   },
   {
@@ -104,6 +110,7 @@ export const users: User[] = [
     ],
     gender: 'female',
     lookingFor: ['male', 'non-binary'],
+    sexualPreference: 'bisexual',
     lastActive: new Date(Date.now() - 7200000), // 2 hours ago
   },
 ];

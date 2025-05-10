@@ -8,6 +8,7 @@ export type User = {
   photos: string[];
   gender: 'male' | 'female' | 'non-binary' | 'other';
   lookingFor: ('male' | 'female' | 'non-binary' | 'other')[];
+  sexualPreference?: 'straight' | 'gay' | 'lesbian' | 'bisexual' | 'pansexual' | 'asexual' | 'other';
   lastActive: Date;
   email?: string;
 };

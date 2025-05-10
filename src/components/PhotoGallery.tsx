@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface PhotoGalleryProps {
   photos: string[];
   initialIndex?: number;
-  onClose?: () => void;
+  onClose: () => void;
 }
 
 const PhotoGallery: React.FC<PhotoGalleryProps> = ({
@@ -14,73 +14,66 @@ const PhotoGallery: React.FC<PhotoGalleryProps> = ({
 }) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      } else if (e.key === 'ArrowLeft') {
+        setCurrentIndex(prev => (prev === 0 ? photos.length - 1 : prev - 1));
+      } else if (e.key === 'ArrowRight') {
+        setCurrentIndex(prev => (prev === photos.length - 1 ? 0 : prev + 1));
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose, photos.length]);
+  
   const goToPrevious = () => {
-    setCurrentIndex((prevIndex) => (prevIndex === 0 ? photos.length - 1 : prevIndex - 1));
+    setCurrentIndex(prev => (prev === 0 ? photos.length - 1 : prev - 1));
   };
   
   const goToNext = () => {
-    setCurrentIndex((prevIndex) => (prevIndex === photos.length - 1 ? 0 : prevIndex + 1));
+    setCurrentIndex(prev => (prev === photos.length - 1 ? 0 : prev + 1));
   };
   
-  if (photos.length === 0) {
-    return null;
-  }
-  
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
-      <div className="relative w-full max-w-3xl mx-auto">
-        {/* Close button */}
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-white z-10 p-2 rounded-full bg-black bg-opacity-50 hover:bg-opacity-70 transition-colors"
-          >
-            <X size={24} />
-          </button>
-        )}
-        
-        {/* Main image */}
-        <div className="relative aspect-square md:aspect-video w-full flex items-center justify-center">
-          <img
-            src={photos[currentIndex]}
-            alt={`Photo ${currentIndex + 1}`}
-            className="max-h-[80vh] max-w-full object-contain"
-          />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80">
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 text-white hover:text-gray-300 focus:outline-none"
+        aria-label="Close gallery"
+      >
+        <X size={24} />
+      </button>
+      
+      <button
+        onClick={goToPrevious}
+        className="absolute left-4 text-white hover:text-gray-300 focus:outline-none"
+        aria-label="Previous photo"
+      >
+        <ChevronLeft size={36} />
+      </button>
+      
+      <div className="max-w-3xl max-h-[80vh] relative">
+        <img
+          src={photos[currentIndex]}
+          alt={`Photo ${currentIndex + 1}`}
+          className="max-w-full max-h-[80vh] object-contain"
+        />
+        <div className="absolute bottom-4 left-0 right-0 text-center text-white">
+          {currentIndex + 1} / {photos.length}
         </div>
-        
-        {/* Navigation buttons */}
-        {photos.length > 1 && (
-          <>
-            <button
-              onClick={goToPrevious}
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white p-2 rounded-full bg-black bg-opacity-50 hover:bg-opacity-70 transition-colors"
-            >
-              <ChevronLeft size={24} />
-            </button>
-            <button
-              onClick={goToNext}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white p-2 rounded-full bg-black bg-opacity-50 hover:bg-opacity-70 transition-colors"
-            >
-              <ChevronRight size={24} />
-            </button>
-          </>
-        )}
-        
-        {/* Indicators */}
-        {photos.length > 1 && (
-          <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
-            {photos.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentIndex(index)}
-                className={`w-2 h-2 rounded-full ${
-                  index === currentIndex ? 'bg-white' : 'bg-white bg-opacity-50'
-                }`}
-              />
-            ))}
-          </div>
-        )}
       </div>
+      
+      <button
+        onClick={goToNext}
+        className="absolute right-4 text-white hover:text-gray-300 focus:outline-none"
+        aria-label="Next photo"
+      >
+        <ChevronRight size={36} />
+      </button>
     </div>
   );
 };

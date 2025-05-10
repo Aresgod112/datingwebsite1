@@ -1,11 +1,19 @@
-import React from 'react';
-import { Outlet, NavLink, useLocation } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Heart, Search, MessageSquare, User, LogOut } from 'lucide-react';
 import { useUserStore } from '../store/userStore';
+import { useMessageStore } from '../store/messageStore';
 
 const Dashboard: React.FC = () => {
   const { currentUser, logout } = useUserStore();
+  const { conversations, fetchConversations } = useMessageStore();
   const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Fetch conversations on mount to get unread count
+  useEffect(() => {
+    fetchConversations();
+  }, [fetchConversations]);
   
   const getTitle = () => {
     const path = location.pathname;
@@ -20,6 +28,14 @@ const Dashboard: React.FC = () => {
     if (path.includes('/profile')) return 'Your Profile';
     return 'Dashboard';
   };
+  
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+  
+  // Calculate total unread messages
+  const unreadCount = conversations.reduce((total, conv) => total + conv.unreadCount, 0);
   
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -39,14 +55,15 @@ const Dashboard: React.FC = () => {
                 <div className="w-8 h-8 rounded-full overflow-hidden">
                   <img 
                     src={currentUser?.photos[0] || 'https://via.placeholder.com/150'} 
-                    alt={currentUser?.name} 
+                    alt={currentUser?.name || 'User'} 
                     className="w-full h-full object-cover"
                   />
                 </div>
               </div>
               <button 
-                onClick={() => logout()}
+                onClick={handleLogout}
                 className="ml-4 p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                aria-label="Logout"
               >
                 <LogOut size={20} />
               </button>
@@ -94,12 +111,17 @@ const Dashboard: React.FC = () => {
             <NavLink 
               to="/dashboard/messages" 
               className={({ isActive }) => 
-                `flex flex-col items-center justify-center w-full ${
+                `flex flex-col items-center justify-center w-full relative ${
                   isActive ? 'text-pink-500' : 'text-gray-500 hover:text-gray-700'
                 }`
               }
             >
               <MessageSquare size={24} />
+              {unreadCount > 0 && (
+                <span className="absolute top-0 right-1/3 bg-pink-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
               <span className="text-xs mt-1">Messages</span>
             </NavLink>
             <NavLink 

@@ -1,11 +1,13 @@
 import { create } from "zustand";
 import { currentUser } from "../data/users";
+import { User } from "../types";
 
 type UserState = {
-  currentUser: any | null;
+  currentUser: User | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
+  updateProfile: (updatedUser: User) => void;
 };
 
 export const useUserStore = create<UserState>((set) => ({
@@ -15,7 +17,6 @@ export const useUserStore = create<UserState>((set) => ({
   login: async (email, password) => {
     // Simulate API call
     return new Promise<boolean>((resolve) => {
-      // Simple timeout without using _onTimeout
       setTimeout(() => {
         if (email && password) {
           set({ currentUser, isAuthenticated: true });
@@ -29,5 +30,9 @@ export const useUserStore = create<UserState>((set) => ({
   
   logout: () => {
     set({ currentUser: null, isAuthenticated: false });
+  },
+  
+  updateProfile: (updatedUser) => {
+    set({ currentUser: updatedUser });
   }
 }));

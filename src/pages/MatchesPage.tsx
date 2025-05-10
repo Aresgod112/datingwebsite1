@@ -1,30 +1,31 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { MessageSquare, Heart } from 'lucide-react';
 import { useMatchStore } from '../store/matchStore';
 import { getUserById } from '../data/users';
+import { formatDistanceToNow } from 'date-fns';
+import { MessageSquare } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const MatchesPage: React.FC = () => {
-  const { matches, loading, fetchMatches } = useMatchStore();
+  const { matches, fetchMatches } = useMatchStore();
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const [loadingUsers, setLoadingUsers] = useState(true);
   
   useEffect(() => {
-    const loadData = async () => {
+    const loadMatches = async () => {
       await fetchMatches();
-      setLoadingUsers(false);
+      setLoading(false);
     };
     
-    loadData();
+    loadMatches();
   }, [fetchMatches]);
   
-  const navigateToMessages = (userId: string) => {
-    // Find or create conversation ID
-    const conversationId = `conv${userId.split('-')[1]}`;
-    navigate(`/dashboard/messages/${conversationId}`);
+  const handleMessageClick = (userId: string) => {
+    // In a real app, you would find or create a conversation with this user
+    // For now, we'll just navigate to the messages page
+    navigate('/dashboard/messages');
   };
   
-  if (loading || loadingUsers) {
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-500"></div>
@@ -34,70 +35,60 @@ const MatchesPage: React.FC = () => {
   
   if (matches.length === 0) {
     return (
-      <div className="text-center py-12">
-        <Heart className="h-16 w-16 text-pink-300 mx-auto mb-4" />
-        <h3 className="text-xl font-medium text-gray-900 mb-2">No matches yet</h3>
-        <p className="text-gray-500 max-w-md mx-auto">
-          Head over to the Discover tab to find potential matches and start connecting with people.
+      <div className="flex flex-col items-center justify-center h-64 text-center">
+        <div className="bg-pink-100 rounded-full p-4 mb-4">
+          <MessageSquare className="h-12 w-12 text-pink-500" />
+        </div>
+        <h3 className="text-xl font-semibold text-gray-800 mb-2">No matches yet</h3>
+        <p className="text-gray-600 max-w-md">
+          Start discovering new people to find your matches!
         </p>
       </div>
     );
   }
   
+  // Sort matches by compatibility (highest first)
+  const sortedMatches = [...matches].sort((a, b) => b.compatibility - a.compatibility);
+  
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {matches.map((match) => {
-          const user = getUserById(match.matchedUserId);
-          if (!user) return null;
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {sortedMatches.map(match => {
+          const matchedUser = getUserById(match.matchedUserId);
+          if (!matchedUser) return null;
           
           return (
-            <div key={match.id} className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="relative h-64">
+            <div key={match.id} className="bg-white rounded-lg shadow overflow-hidden flex">
+              <div className="w-1/3">
                 <img 
-                  src={user.photos[0]} 
-                  alt={user.name} 
+                  src={matchedUser.photos[0]} 
+                  alt={matchedUser.name} 
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
-                  <div className="flex justify-between items-end">
-                    <div>
-                      <h3 className="text-xl font-semibold text-white">{user.name}, {user.age}</h3>
-                      <p className="text-sm text-gray-200">{user.location}</p>
-                    </div>
-                    <div className="bg-pink-500 text-white rounded-full px-2 py-1 text-sm font-medium">
-                      {match.compatibility}% Match
-                    </div>
-                  </div>
-                </div>
               </div>
-              
-              <div className="p-4">
-                <p className="text-gray-600 text-sm line-clamp-2 mb-4">{user.bio}</p>
-                
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {user.interests.slice(0, 3).map((interest, index) => (
-                    <span 
-                      key={index} 
-                      className="bg-pink-100 text-pink-800 text-xs px-2 py-1 rounded-full"
-                    >
-                      {interest}
+              <div className="w-2/3 p-4 flex flex-col justify-between">
+                <div>
+                  <div className="flex justify-between items-start">
+                    <h3 className="text-lg font-medium text-gray-900">{matchedUser.name}, {matchedUser.age}</h3>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-pink-100 text-pink-800">
+                      {match.compatibility}% Match
                     </span>
-                  ))}
-                  {user.interests.length > 3 && (
-                    <span className="text-gray-500 text-xs px-2 py-1">
-                      +{user.interests.length - 3} more
-                    </span>
-                  )}
+                  </div>
+                  <p className="text-sm text-gray-500 mb-2">{matchedUser.location}</p>
+                  <p className="text-sm text-gray-700 line-clamp-2">{matchedUser.bio}</p>
                 </div>
-                
-                <button
-                  onClick={() => navigateToMessages(user.id)}
-                  className="w-full flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-pink-600 hover:bg-pink-700"
-                >
-                  <MessageSquare size={16} className="mr-2" />
-                  Message
-                </button>
+                <div className="mt-4 flex justify-between items-center">
+                  <span className="text-xs text-gray-500">
+                    Matched {formatDistanceToNow(new Date(match.createdAt), { addSuffix: true })}
+                  </span>
+                  <button
+                    onClick={() => handleMessageClick(matchedUser.id)}
+                    className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-pink-600 hover:bg-pink-700 focus:outline-none"
+                  >
+                    <MessageSquare className="h-3.5 w-3.5 mr-1" />
+                    Message
+                  </button>
+                </div>
               </div>
             </div>
           );
